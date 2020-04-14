@@ -1,0 +1,96 @@
+language: python
+python: 2.7
+os: 
+  - linux
+  # - osx
+  # - windows
+# Ubuntu 14.04 Trusty support
+sudo: required
+# dist: trusty
+# install new cmake
+#addons:
+#  apt:
+#    packages:
+#      - cmake
+#    sources:
+#      - kalakris-cmake
+env:
+    # - CONDA_PYTHON_VERSION=2.7
+    - CONDA_PYTHON_VERSION=3.6
+    - CONDA_PYTHON_VERSION=3.7
+
+services:
+  - xvfb
+matrix:
+  include:
+    - os: osx
+      language: minimal
+      name: osx python36
+      env:
+        - CONDA_PYTHON_VERSION=3.6
+    - os: osx
+      language: minimal
+      name: osx python37
+      env:
+        - CONDA_PYTHON_VERSION=3.7
+  allow_failures:
+    - env: CONDA_PYTHON_VERSION=2.7
+    - env: CONDA_PYTHON_VERSION=3.7
+    # - os: windows
+  fast_finish: true
+# virtualenv:
+#   system_site_packages: true
+before_script:
+    # GUI
+    - "export DISPLAY=:99.0"
+
+before_install:
+    - sudo apt-get update
+    # - sudo apt-get install -qq cmake libinsighttoolkit3-dev libpng12-dev libgdcm2-dev
+    
+    # - wget http://home.zcu.cz/~mjirik/lisa/install/install_conda.sh && source install_conda.sh
+    - wget https://raw.githubusercontent.com/mjirik/discon/master/tools/install_conda.sh && source install_conda.sh
+    # We do this conditionally because it saves us some downloading if the
+    # version is the same.
+    # - if [[ "$CONDA_PYTHON_VERSION" == "2.7" ]]; then
+    #     echo "python 2"
+    #   else
+    #     echo "python 3"
+    #   fi
+    - hash -r
+    - conda config --set always_yes yes --set changeps1 no
+    - conda config --add channels mjirik
+    - conda config --add channels conda-forge
+    # - conda config --add channels SimpleITK
+    # - conda config --add channels luispedro
+    - conda update -q conda
+    # Useful for debugging any issues with conda
+    - conda info -a
+
+# command to install dependencies
+install:
+
+    # - sudo apt-get install -qq $(< apt_requirements.txt)
+    - conda create --yes -n travis python=$CONDA_PYTHON_VERSION
+    - source activate travis
+#    - Install dependencies
+    - conda install --yes --file requirements_conda.txt pytest-cov coveralls
+#    - pip install -r requirements_pip.txt
+#    - "echo $LD_LIBRARY_PATH"
+#    - "pip install -r requirements.txt"
+#    - 'mkdir build'
+#    - "cd build"
+#    - "cmake .."
+#    - "cmake --build ."
+#    - "sudo make install"
+#    - pip install .
+#    - "cd .."
+#    - 'echo "include /usr/local/lib" | sudo tee -a /etc/ld.so.conf'
+#    - 'sudo ldconfig -v'
+#    - conda list -e
+#    - python -m io3d.datasets -l 3Dircadb1.1 jatra_5mm exp_small sliver_training_001 io3d_sample_data head volumetrie
+# command to run tests
+# script: nosetests -v --with-coverage --cover-package=vebase
+
+script: python -m pytest --cov=vebase/
+after_success: coveralls
