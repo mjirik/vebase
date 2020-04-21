@@ -568,7 +568,7 @@ def tree_reduction(stats, list_of_areas_arr_edges, dist_map_final_liver_vol, vol
                 dot = add_nodes_edges(tree.right, dot=dot)
             return dot
         dot = add_nodes_edges(tree)
-        display(dot)
+        # display(dot)
         return dot
 
     def visualize_tree_val(tree):
@@ -586,7 +586,7 @@ def tree_reduction(stats, list_of_areas_arr_edges, dist_map_final_liver_vol, vol
                 dot = add_nodes_edges(tree.right, dot=dot)
             return dot
         dot = add_nodes_edges(tree)
-        display(dot)
+        # display(dot)
         return dot
 
     class SumTree:
