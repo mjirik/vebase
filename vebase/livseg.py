@@ -1,5 +1,4 @@
-%matplotlib inline 
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
 import matplotlib.image as mpimage
 from mpl_toolkits import mplot3d
 
