@@ -275,7 +275,10 @@ def voda_sk(l_d):
     return ret_array
     
     
-def tree_reduction(stats, list_of_areas_arr_edges, dist_map_final_liver_vol, volumecekr):
+def tree_reduction(stats, list_of_areas_arr_edges, dist_map_final_liver_vol, volumecekr, tree_graph_check):
+    
+    if tree_graph_check == 1:
+        from graphviz import Digraph
     """
     tree_reduction merge volumetric data to tree and remove pot. unnecessary nodes - return array with pot. IMPORTANT nodes
     represent connections in var mattest
@@ -525,7 +528,27 @@ def tree_reduction(stats, list_of_areas_arr_edges, dist_map_final_liver_vol, vol
             lines, _, _, _ = self._display_aux()
             for line in lines:
                 print(line)
-
+                
+    def build_segments(root, arr, lastnode):
+        if root==None:
+            return
+        if root == lastnode:
+            None
+        else:
+            build_segments(root.left,arr,lastnode)
+            #print(root.val, end=" ")
+            arr.append(root.val)
+            build_segments(root.right,arr,lastnode)
+        return arr
+    def build_last(root, arr):
+        if root==None:
+            return
+        else:
+            build_last(root.left,arr)
+            arr.append(root.val)
+            build_last(root.right,arr)
+        return arr
+    
     def insert(target, node, l_r): 
         if target is None: 
             target = node
@@ -735,22 +758,29 @@ def tree_reduction(stats, list_of_areas_arr_edges, dist_map_final_liver_vol, vol
         st.traverse_inorder_nodeid(root)
         st.traverse_inorder_nodevol(root,los)
         
-        #usin graphviz for visual validation - can be turned off fcn will retun only pot. important nodes
-        #first bifuracation
-        #tree_pic = visualize_tree_val(root)  #visualize_tree_vol/val 
-        
-        #orgroot = potroots[-rootid-1]
-        #whole tree
-        #tree_pic = visualize_tree_val(orgroot)
-        
-        # Save as png file
-        #tree_pic.format = 'png'
-        #tree_pic.view(filename = 'Vesseltree_', directory='C:/Users/user/Desktop/testprj')
-        
+        if tree_graph_check == 1:
+            #usin graphviz for visual validation - can be turned off fcn will retun only pot. important nodes
+            #first bifuracation
+            tree_pic = visualize_tree_val(root)  #visualize_tree_vol/val 
+
+            #orgroot = potroots[-rootid-1]
+            #whole tree
+            #tree_pic = visualize_tree_val(orgroot)
+
+            # Save as png file
+            tree_pic.format = 'png'
+            tree_pic.view(filename = 'Vesseltree_', directory='C:/Users/user/Desktop/testprj')
         res_div_nodes = find_all_div_nodes(los)
         res_div_nodes.append(root.val)
         res_div_nodes_n = list(set(res_div_nodes))
-        print("Important nodes are: ", res_div_nodes_n)
+        final_array_segments = []
+        #fcn to get specific segments for plot
+        for i in range(0,len(res_div_nodes_n)):
+            temp_arx = []
+            final_array_segments.append(build_segments(potroots[res_div_nodes_n[i]-1],temp_arx,root))
+        temp_arx = []
+        final_array_segments.append(build_last(root,temp_arx))
+        res_div_nodes_n.append(final_array_segments)
         return res_div_nodes_n
     
     los = main()
@@ -764,3 +794,153 @@ def tree_reduction(stats, list_of_areas_arr_edges, dist_map_final_liver_vol, vol
     arr_return.append(los)
     arr_return.append(objcts_atrbs)
     return arr_return
+
+def plot_tree_reduction_3d(tree_red):
+    #prepare areas for figure
+    sorted_seg = []
+    t = 0
+    while(t != 1):
+        leng = 999
+        ti = 0
+        for i in range(0,len(tree_red[0][-1])):
+            if len(tree_red[0][-1][i]) < leng:
+                ti = i
+                leng = len(tree_red[0][-1][i])
+        sorted_seg.append(tree_red[0][-1][ti])
+        tree_red[0][-1].remove(tree_red[0][-1][ti])
+        if (len(tree_red[0][-1]) == 0):
+            t = 1
+    list(reversed((sorted_seg)))
+    #build
+    dm = voda_[2]
+    edges = []
+    for i in range(0, len(voda_[2])):
+        if voda_[2][i][3] > -1:
+            edges.append(voda_[2][i])
+    nodes = []
+    for i in range(0, len(voda_[2])):
+        if voda_[2][i][3] < 1:
+            nodes.append(voda_[2][i])
+
+    atemp_ = []
+
+    nodes_f = list(reversed(nodes))
+    for x in range(0,len(sorted_seg)):
+        ta = []
+        for i in range(0,len(nodes_f)):
+            if -nodes_f[i][3] in sorted_seg[x]:
+                ta.append(nodes_f[i])
+        atemp_.append(ta)
+    for x in range(0,len(sorted_seg)):
+        ta = []
+        for i in range(0, len(edges)):
+            if edges[i][3] in sorted_seg[x]:
+                ta.append(edges[i])
+        for k in range(0,len(ta)):
+            atemp_[x].append(ta[k])
+
+
+    seg_ar = []
+    test = 0
+
+    for atl in range(0,len(atemp_)):
+        a11a = []
+        a11b = []
+        a11c = []
+        for cnt in range(0,len(atemp_[atl])):
+            for i in range(0,len(atemp_[atl][cnt][2])):
+                a11a.append(atemp_[atl][cnt][2][i])
+                a11b.append(atemp_[atl][cnt][1][i])
+                a11c.append(atemp_[atl][cnt][0][i])
+        seg_ar.append(a11a)
+        seg_ar.append(a11b)
+        seg_ar.append(a11c)
+    seg_ar = list(reversed(seg_ar))
+    fig = plt.figure(figsize=(10,10))
+    ax = plt.axes(projection='3d')
+    for i in range(0,len(seg_ar)-3,3):
+        if(len(seg_ar[i]) == 0):
+            None
+        else:
+            # x, y ,z
+            ax.scatter3D(seg_ar[i+2],seg_ar[i+1],seg_ar[i])
+    #check print ???matchin lengths of areas
+    for i in range(0,len(seg_ar)-3,3):
+        print(len(seg_ar[i]),len(seg_ar[i+1]),len(seg_ar[i+2]))
+
+def plot_tree_reduction_2d(tree_red, chosen_slice):
+    #prepare areas for figure
+    sorted_seg = []
+    t = 0
+    while(t != 1):
+        leng = 999
+        ti = 0
+        for i in range(0,len(tree_red[0][-1])):
+            if len(tree_red[0][-1][i]) < leng:
+                ti = i
+                leng = len(tree_red[0][-1][i])
+        sorted_seg.append(tree_red[0][-1][ti])
+        tree_red[0][-1].remove(tree_red[0][-1][ti])
+        if (len(tree_red[0][-1]) == 0):
+            t = 1
+    list(reversed((sorted_seg)))
+    #build
+    dm = voda_[2]
+    edges = []
+    for i in range(0, len(voda_[2])):
+        if voda_[2][i][3] > -1:
+            edges.append(voda_[2][i])
+    nodes = []
+    for i in range(0, len(voda_[2])):
+        if voda_[2][i][3] < 1:
+            nodes.append(voda_[2][i])
+
+    atemp_ = []
+
+    nodes_f = list(reversed(nodes))
+    for x in range(0,len(sorted_seg)):
+        ta = []
+        for i in range(0,len(nodes_f)):
+            if -nodes_f[i][3] in sorted_seg[x]:
+                ta.append(nodes_f[i])
+        atemp_.append(ta)
+    for x in range(0,len(sorted_seg)):
+        ta = []
+        for i in range(0, len(edges)):
+            if edges[i][3] in sorted_seg[x]:
+                ta.append(edges[i])
+        for k in range(0,len(ta)):
+            atemp_[x].append(ta[k])
+
+
+    seg_ar = []
+    test = 0
+
+    for atl in range(0,len(atemp_)):
+        a11a = []
+        a11b = []
+        a11c = []
+        for cnt in range(0,len(atemp_[atl])):
+            for i in range(0,len(atemp_[atl][cnt][2])):
+                a11a.append(atemp_[atl][cnt][2][i])
+                a11b.append(atemp_[atl][cnt][1][i])
+                a11c.append(atemp_[atl][cnt][0][i])
+        seg_ar.append(a11a)
+        seg_ar.append(a11b)
+        seg_ar.append(a11c)
+    seg_ar = list(reversed(seg_ar))
+    #2d
+    f2dpl = []
+    for i in range(0,len(seg_ar)-3,3):
+        slicex = []
+        slicey = []    
+        for j in range(0,len(seg_ar[i])):
+            temp = seg_ar[i][j]
+            if temp == chosen_slice:       
+                slicex.append(seg_ar[i+2][j])
+                slicey.append(seg_ar[i+1][j])
+        f2dpl.append(slicex)
+        f2dpl.append(slicey)
+    fig = plt.figure(figsize=(10,10))
+    for i in range(0,len(f2dpl)-1,2):
+        plt.scatter(f2dpl[i],f2dpl[i+1])
