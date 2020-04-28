@@ -1,6 +1,9 @@
+import vebase
+import vebase.livseg
+
+from vebase.livseg import load_vdata, voda_sk, tree_reduction, plot_tree_reduction_3d
 #steps to execute livseg.py functions
 
-"""
 p1 = "D:/liver_datasets_outputs/wokrin/1/MASKS_DICOM/liver/"
 p2 = "D:/liver_datasets_outputs/wokrin/1/MASKS_DICOM/portalvein/"
 p1_i = "D:/liver_datasets_outputs/wokrin/1/MASKS_DICOM/liver/image_1"
@@ -21,4 +24,3 @@ plot_tree_reduction_3d(tree_red)
 
 #tree_red = tree_reduction(voda_[0],voda_[1], voda_[2],l_data[3],0) 
 #plot_tree_reduction_2d(tree_red,66) #choose from z axis interval
-"""
