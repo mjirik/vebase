@@ -11,6 +11,7 @@ import skimage.morphology as morp
 from skimage.filters import rank
 
 import os, glob
+from pathlib import Path
 
 from datetime import datetime
 
@@ -25,7 +26,7 @@ from collections import deque
 #possible to remove some if needend
 
 
-def load_vdata(p_mask_path, l_mask_path, l_mask_path_img1, l_mask_path_img2):
+def load_vdata(p_mask_path, l_mask_path, l_mask_path_img1, l_mask_path_img2, accepted_suffixes=(".dcm")):
     """
     #load 3d masks liver and porta
     #use path arguments in format 
@@ -47,7 +48,8 @@ def load_vdata(p_mask_path, l_mask_path, l_mask_path_img1, l_mask_path_img2):
     sortedlist = natsort.natsorted(lstFilesDCM, reverse=False)
     fdcml = []
     for x in range(0,len(sortedlist)):
-        fdcml.append(l_mask_path + sortedlist[x])
+        if Path(sortedlist[x]).suffix in accepted_suffixes:
+            fdcml.append(l_mask_path + sortedlist[x])
     # loop through all the DICOM files
     dcmmatrx = []
     for filenameDCM in fdcml:
@@ -78,7 +80,8 @@ def load_vdata(p_mask_path, l_mask_path, l_mask_path_img1, l_mask_path_img2):
     sortedlist = natsort.natsorted(lstFilesDCM,reverse=False)
     fdcml = []
     for x in range(0,len(sortedlist)):
-        fdcml.append(p_mask_path + sortedlist[x])
+        if Path(sortedlist[x]).suffix in accepted_suffixes:
+            fdcml.append(p_mask_path + sortedlist[x])
     # loop through all the DICOM files
     dcmmatrx = []
     for filenameDCM in fdcml:
@@ -110,12 +113,15 @@ def load_vdata(p_mask_path, l_mask_path, l_mask_path_img1, l_mask_path_img2):
 
 
 
-def voda_sk(l_d):
+# def voda_sk(l_d):
+def voda_sk(organ_seg, liver_seg, voxelsize, cr):
     """
     build skeleton of porta
     voda_sk(xyz) build distance 3D map and compute volumes of liverpart for each skeleton element of chosen dataset
     voda_sk(xyz) takes argument from load_vdata - it need volumetric data of porta, liver and vox size (not ncsry..)
     """
+    l_d = [organ_seg, liver_seg, voxelsize, cr]
+
     tempsz = (np.shape(l_d[0][1]))
     ylab = tempsz[1]
     xlab = tempsz[0]

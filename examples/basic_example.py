@@ -24,7 +24,7 @@ p2_i = io3d.datasets.join_path("medical/orig/3Dircadb1.1/MASKS_DICOM/liver/image
 # print(f"{=p1}")
 
 l_data = vebase.livseg.load_vdata(p2,p1,p1_i,p2_i) # --- load ncsry data
-voda_ = vebase.livseg.vebavoda_sk(l_data) # --- build volumes
+voda_ = vebase.livseg.vebavoda_sk(*l_data) # --- build volumes
 tree_red = vebase.livseg.tree_reduction(voda_[0],voda_[1], voda_[2],l_data[3]) # --- choose important nodes of portal vein
 
 print(tree_red)
