@@ -107,6 +107,7 @@ def load_vdata(p_mask_path, l_mask_path, l_mask_path_img1, l_mask_path_img2, acc
     load_array = []
     load_array.append(volume_data_porta)
     load_array.append(volume_data_liver)
+    vox_sz = 1
     load_array.append(vox_sz)
     load_array.append(volumecekr)
     return load_array
@@ -381,33 +382,6 @@ def tree_reduction(stats, list_of_areas_arr_edges, dist_map_final_liver_vol, vol
             mattest[-x_a][v_edg_a[j]] = 1
         for k in range(len(v_edg_b)):
             mattest[-x_b][v_edg_b[k]] = 1
-    testlistn = []
-    tedgs = []
-    for asfd in range(0, len(id_res)):
-        for i in range(1, len(mattest[1, :])):
-            if mattest[id_res[asfd], i] != 0:
-                tedgs.append(i)
-    tnods = []
-    for x in range(0, len(tedgs)):
-        tmpnar = []
-        for i in range(1, len(mattest[:, 1])):
-            if (mattest[i, tedgs[x]]) != 0:
-                tmpnar.append(i)
-        tnods.append(tmpnar)
-        tmpnar = []
-    for x in range(len(tnods)):
-        if tnods[x] in testlistn:
-            None
-        else:
-            testlistn.append(tnods[x])
-    nodelisttoadd = []
-    for i in range(0, len(testlistn)):
-        for j in range(0, len(testlistn[i])):
-            chck = testlistn[i]
-            if chck[j] in nodelisttoadd:
-                None
-            else:
-                nodelisttoadd.append(chck[j])
     area_id_vol = []
     for i in range(0, len(id_res)):
         temp = [id_res[i]]
@@ -457,9 +431,9 @@ def tree_reduction(stats, list_of_areas_arr_edges, dist_map_final_liver_vol, vol
     arofedges_buildvol = []
     for i in range(0,len(dist_map_final_liver_vol)):
         check = (dist_map_final_liver_vol[i][3])
-        if (check < 0):
+        if (check > 0):
             arofedges_buildvol.append(dist_map_final_liver_vol[i])
-    arofedges_buildvolfinal = list(reversed(arofedges_buildvol))
+    arofedges_buildvolfinal = list(arofedges_buildvol)
     testlistn = []
     tedgs = []
     for asfd in range(0, len(id_res)):
@@ -493,8 +467,19 @@ def tree_reduction(stats, list_of_areas_arr_edges, dist_map_final_liver_vol, vol
         temp = [id_res[i]]
         objcts_atrbs.append(temp)
     matt_sz = np.shape(mattest)
+
+    ta = []
+    for i in range(1,-min(id_res)+1):
+        ta.append(-i)
+    uzly = []
+    ttt = -1
+    for j in range(0,len(ta)):
+        for i in range(0,len(dist_map_final_liver_vol)):
+            if dist_map_final_liver_vol[i][3] == ttt:
+                uzly.append(dist_map_final_liver_vol[i])
+                ttt = ttt - 1
     for i in range(0, len(objcts_atrbs)):
-        objcts_atrbs[i].append(len(dist_map_final_liver_vol[i][0]))
+        objcts_atrbs[i].append(len(uzly[i][0])) 
     for i in range(0,len(testlistn)):
         sumtemp = 0
         edgindex = -1
@@ -581,6 +566,7 @@ def tree_reduction(stats, list_of_areas_arr_edges, dist_map_final_liver_vol, vol
                     insert(target.right, node, l_r) 
         elif target.right != None and target.left != None:
             insert(target.left, node, l_r)
+            print("warning!: possible tifucration", target.val)
 
     def visualize_tree_vol(tree):
         def add_nodes_edges(tree, dot=None):
@@ -666,12 +652,12 @@ def tree_reduction(stats, list_of_areas_arr_edges, dist_map_final_liver_vol, vol
             for i in range(0,len(los)):
                 tempvol = potroots[los[i][0]-1].vol
                 try:
-                    if potroots[los[i][0]-1].left.vol > 50000 and (potroots[los[i][0]-1].left.vol > tempvol*0.43 and potroots[los[i][0]-1].left.vol < tempvol*0.73):
+                    if potroots[los[i][0]-1].left.vol > 150000 and (potroots[los[i][0]-1].left.vol > tempvol*0.34 and potroots[los[i][0]-1].left.vol < tempvol*0.81):
                         div_nodes.append(potroots[los[i][0]-1].val)
                 except:
                     None
                 try:
-                    if potroots[los[i][0]-1].right.vol > 50000 and (potroots[los[i][0]-1].right.vol > tempvol*0.43 and potroots[los[i][0]-1].right.vol < tempvol*0.73):
+                    if potroots[los[i][0]-1].right.vol > 150000 and (potroots[los[i][0]-1].right.vol > tempvol*0.34 and potroots[los[i][0]-1].right.vol < tempvol*0.81):
                         div_nodes.append(potroots[los[i][0]-1].val)
                 except:
                     None
@@ -766,186 +752,172 @@ def tree_reduction(stats, list_of_areas_arr_edges, dist_map_final_liver_vol, vol
         if tree_graph_check == 1:
             #usin graphviz for visual validation - can be turned off fcn will retun only pot. important nodes
             #first bifuracation
-            tree_pic = visualize_tree_val(root)  #visualize_tree_vol/val 
+            #tree_pic = visualize_tree_val(root)  #visualize_tree_vol/val 
 
-            #orgroot = potroots[-rootid-1]
+            orgroot = potroots[-rootid-1]
             #whole tree
-            #tree_pic = visualize_tree_val(orgroot)
-
+            tree_pic = visualize_tree_val(orgroot)
             # Save as png file
             tree_pic.format = 'png'
             tree_pic.view(filename = 'Vesseltree_', directory='C:/Users/user/Desktop/testprj')
+            tree_pic = visualize_tree_val(root)
+            # Save as png file
+            tree_pic.format = 'png'
+            tree_pic.view(filename = 'Vesseltree_1', directory='C:/Users/user/Desktop/testprj')
+        orgroot = potroots[-rootid-1]
         res_div_nodes = find_all_div_nodes(los)
-        res_div_nodes.append(root.val)
+        #res_div_nodes.append(orgroot.val)
         res_div_nodes_n = list(set(res_div_nodes))
         final_array_segments = []
         #fcn to get specific segments for plot
+        #res_div_nodes_n = [38,37,53]
+        #print(res_div_nodes_n)
         for i in range(0,len(res_div_nodes_n)):
             temp_arx = []
             final_array_segments.append(build_segments(potroots[res_div_nodes_n[i]-1],temp_arx,root))
         temp_arx = []
         final_array_segments.append(build_last(root,temp_arx))
+        #final_array_segments.reverse() - need some advanced sort for proper vizualization.. (difference in length of subtrees..)
         res_div_nodes_n.append(final_array_segments)
+        #print(res_div_nodes_n)
         return res_div_nodes_n
     
     los = main()
     #function to check the difference between volume of liver and summs
-    objcts_atrbs[1]
+    #objcts_atrbs[1]
     chc = 0
     for i in range(0, len(objcts_atrbs)):
         chc = chc + objcts_atrbs[i][1]
     print("Pixel difference between final volumetric tree and input volume of liver: ", volumecekr - chc, "pix")
     arr_return = []
     arr_return.append(los)
-    arr_return.append(objcts_atrbs)
     return arr_return
 
-def plot_tree_reduction_3d(tree_red):
-    #prepare areas for figure
-    sorted_seg = []
-    t = 0
-    while(t != 1):
-        leng = 999
-        ti = 0
-        for i in range(0,len(tree_red[0][-1])):
-            if len(tree_red[0][-1][i]) < leng:
-                ti = i
-                leng = len(tree_red[0][-1][i])
-        sorted_seg.append(tree_red[0][-1][ti])
-        tree_red[0][-1].remove(tree_red[0][-1][ti])
-        if (len(tree_red[0][-1]) == 0):
-            t = 1
-    list(reversed((sorted_seg)))
-    #build
-    dm = voda_[2]
-    edges = []
-    for i in range(0, len(voda_[2])):
-        if voda_[2][i][3] > -1:
-            edges.append(voda_[2][i])
-    nodes = []
-    for i in range(0, len(voda_[2])):
-        if voda_[2][i][3] < 1:
-            nodes.append(voda_[2][i])
+def vein_b_viz(porta,segs,stats,dist_map_final_liver_vol):
+    id_ = []
+    for i in range(0, (len(stats))):
+        try:
+            id_.append(stats[i+1]["nodeIdA"])
+            id_.append(stats[i+1]["nodeIdB"])
+        except:
+            None
+    id_res = list(set(id_))
+    id_res.sort(reverse = True)
+    arofedges_buildvol = []
+    for i in range(0,len(dist_map_final_liver_vol)):
+        check = (dist_map_final_liver_vol[i][3])
+        if (check > 0):
+            arofedges_buildvol.append(dist_map_final_liver_vol[i])
+    arofedges_buildvolfinal = list(arofedges_buildvol)
 
-    atemp_ = []
+    ta = []
+    for i in range(1,-min(id_res)+1):
+        ta.append(-i)
+        
+    uzly = []
+    ttt = -1
+    for j in range(0,len(ta)):
+        for i in range(0,len(dist_map_final_liver_vol)):
+            if dist_map_final_liver_vol[i][3] == ttt:
+                uzly.append(dist_map_final_liver_vol[i])
+                ttt = ttt - 1
+    #print((arofedges_buildvol[5]))
+    #print((uzly[5]))
+    
+    arr_objcts = []
+    
+    seg_frac = []
+    for i in range(0,len(segs)):
+        seg_frac.append(segs[i])
+    for i in range(0,len(seg_frac)):
+        ata = []
+        for j in range(0,len(seg_frac[i])):
+            test_val = -seg_frac[i][j]
+            for k in range(1,len(stats)):
+                if test_val == stats[k]["nodeIdA"] or test_val == stats[k]["nodeIdB"]:
+                    if arofedges_buildvol[k-1] in ata:
+                        None
+                    else:
+                        ata.append(arofedges_buildvol[k-1])
+            ata.append(uzly[-test_val-1])
+        arr_objcts.append(ata)
+    for i in range(0,len(arr_objcts)):
+        for j in range(0,len(arr_objcts[i])):
+            for k in range(0,len(arr_objcts[i][j][0])):
+                if (porta[arr_objcts[i][j][0][k]][arr_objcts[i][j][1][k]][arr_objcts[i][j][2][k]]) != 1:
+                    arr_objcts[i][j][0][k] = 1
+                    arr_objcts[i][j][1][k] = 256
+                    arr_objcts[i][j][2][k] = 256
 
-    nodes_f = list(reversed(nodes))
-    for x in range(0,len(sorted_seg)):
-        ta = []
-        for i in range(0,len(nodes_f)):
-            if -nodes_f[i][3] in sorted_seg[x]:
-                ta.append(nodes_f[i])
-        atemp_.append(ta)
-    for x in range(0,len(sorted_seg)):
-        ta = []
-        for i in range(0, len(edges)):
-            if edges[i][3] in sorted_seg[x]:
-                ta.append(edges[i])
-        for k in range(0,len(ta)):
-            atemp_[x].append(ta[k])
-
-
-    seg_ar = []
-    test = 0
-
-    for atl in range(0,len(atemp_)):
-        a11a = []
-        a11b = []
-        a11c = []
-        for cnt in range(0,len(atemp_[atl])):
-            for i in range(0,len(atemp_[atl][cnt][2])):
-                a11a.append(atemp_[atl][cnt][2][i])
-                a11b.append(atemp_[atl][cnt][1][i])
-                a11c.append(atemp_[atl][cnt][0][i])
-        seg_ar.append(a11a)
-        seg_ar.append(a11b)
-        seg_ar.append(a11c)
-    seg_ar = list(reversed(seg_ar))
+    
     fig = plt.figure(figsize=(10,10))
     ax = plt.axes(projection='3d')
-    for i in range(0,len(seg_ar)-3,3):
-        if(len(seg_ar[i]) == 0):
+    
+    color = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
+
+    color_check = 0
+    for i in range(0,len(arr_objcts)):
+        for cnt in range(0,len(arr_objcts[i])):
+            ax.scatter3D(arr_objcts[i][cnt][2],arr_objcts[i][cnt][1],arr_objcts[i][cnt][0],color = color[i])
+    fig.savefig('myimage_p.png', format='png', dpi=600)
+
+def vein_b_viz_l(porta,segs,stats,dist_map_final_liver_vol):
+    id_ = []
+    for i in range(0, (len(stats))):
+        try:
+            id_.append(stats[i+1]["nodeIdA"])
+            id_.append(stats[i+1]["nodeIdB"])
+        except:
             None
-        else:
-            # x, y ,z
-            ax.scatter3D(seg_ar[i+2],seg_ar[i+1],seg_ar[i])
-    #check print ???matchin lengths of areas
-    for i in range(0,len(seg_ar)-3,3):
-        print(len(seg_ar[i]),len(seg_ar[i+1]),len(seg_ar[i+2]))
+    id_res = list(set(id_))
+    id_res.sort(reverse = True)
+    arofedges_buildvol = []
+    for i in range(0,len(dist_map_final_liver_vol)):
+        check = (dist_map_final_liver_vol[i][3])
+        if (check > 0):
+            arofedges_buildvol.append(dist_map_final_liver_vol[i])
+    arofedges_buildvolfinal = list(arofedges_buildvol)
 
-def plot_tree_reduction_2d(tree_red, chosen_slice):
-    #prepare areas for figure
-    sorted_seg = []
-    t = 0
-    while(t != 1):
-        leng = 999
-        ti = 0
-        for i in range(0,len(tree_red[0][-1])):
-            if len(tree_red[0][-1][i]) < leng:
-                ti = i
-                leng = len(tree_red[0][-1][i])
-        sorted_seg.append(tree_red[0][-1][ti])
-        tree_red[0][-1].remove(tree_red[0][-1][ti])
-        if (len(tree_red[0][-1]) == 0):
-            t = 1
-    list(reversed((sorted_seg)))
-    #build
-    dm = voda_[2]
-    edges = []
-    for i in range(0, len(voda_[2])):
-        if voda_[2][i][3] > -1:
-            edges.append(voda_[2][i])
-    nodes = []
-    for i in range(0, len(voda_[2])):
-        if voda_[2][i][3] < 1:
-            nodes.append(voda_[2][i])
-
-    atemp_ = []
-
-    nodes_f = list(reversed(nodes))
-    for x in range(0,len(sorted_seg)):
-        ta = []
-        for i in range(0,len(nodes_f)):
-            if -nodes_f[i][3] in sorted_seg[x]:
-                ta.append(nodes_f[i])
-        atemp_.append(ta)
-    for x in range(0,len(sorted_seg)):
-        ta = []
-        for i in range(0, len(edges)):
-            if edges[i][3] in sorted_seg[x]:
-                ta.append(edges[i])
-        for k in range(0,len(ta)):
-            atemp_[x].append(ta[k])
-
-
-    seg_ar = []
-    test = 0
-
-    for atl in range(0,len(atemp_)):
-        a11a = []
-        a11b = []
-        a11c = []
-        for cnt in range(0,len(atemp_[atl])):
-            for i in range(0,len(atemp_[atl][cnt][2])):
-                a11a.append(atemp_[atl][cnt][2][i])
-                a11b.append(atemp_[atl][cnt][1][i])
-                a11c.append(atemp_[atl][cnt][0][i])
-        seg_ar.append(a11a)
-        seg_ar.append(a11b)
-        seg_ar.append(a11c)
-    seg_ar = list(reversed(seg_ar))
-    #2d
-    f2dpl = []
-    for i in range(0,len(seg_ar)-3,3):
-        slicex = []
-        slicey = []    
-        for j in range(0,len(seg_ar[i])):
-            temp = seg_ar[i][j]
-            if temp == chosen_slice:       
-                slicex.append(seg_ar[i+2][j])
-                slicey.append(seg_ar[i+1][j])
-        f2dpl.append(slicex)
-        f2dpl.append(slicey)
+    ta = []
+    for i in range(1,-min(id_res)+1):
+        ta.append(-i)
+        
+    uzly = []
+    ttt = -1
+    for j in range(0,len(ta)):
+        for i in range(0,len(dist_map_final_liver_vol)):
+            if dist_map_final_liver_vol[i][3] == ttt:
+                uzly.append(dist_map_final_liver_vol[i])
+                ttt = ttt - 1
+    #print((arofedges_buildvol[5]))
+    #print((uzly[5]))
+    
+    arr_objcts = []
+    
+    seg_frac = []
+    for i in range(0,len(segs)):
+        seg_frac.append(segs[i])
+    for i in range(0,len(seg_frac)):
+        ata = []
+        for j in range(0,len(seg_frac[i])):
+            test_val = -seg_frac[i][j]
+            for k in range(1,len(stats)):
+                if test_val == stats[k]["nodeIdA"] or test_val == stats[k]["nodeIdB"]:
+                    if arofedges_buildvol[k-1] in ata:
+                        None
+                    else:
+                        ata.append(arofedges_buildvol[k-1])
+            ata.append(uzly[-test_val-1])
+        arr_objcts.append(ata)
+        
     fig = plt.figure(figsize=(10,10))
-    for i in range(0,len(f2dpl)-1,2):
-        plt.scatter(f2dpl[i],f2dpl[i+1])
+    ax = plt.axes(projection='3d')
+    
+    color = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
+
+    color_check = 0
+    for i in range(0,len(arr_objcts)):
+        for cnt in range(0,len(arr_objcts[i])):
+            ax.scatter3D(arr_objcts[i][cnt][2],arr_objcts[i][cnt][1],arr_objcts[i][cnt][0],color = color[i])
+    fig.savefig('myimage.png', format='png', dpi=600)
+          
