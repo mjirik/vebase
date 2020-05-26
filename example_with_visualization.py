@@ -4,7 +4,7 @@ import vebase
 import vebase.livseg
 import io3d.datasets
 
-from vebase.livseg import load_vdata, voda_sk, tree_reduction, plot_tree_reduction_3d
+from vebase.livseg import load_vdata, voda_sk, tree_reduction #, plot_tree_reduction_3d
 #steps to execute livseg.py functions
 
 p1 = "D:/liver_datasets_outputs/wokrin/1/MASKS_DICOM/liver/"
@@ -32,7 +32,7 @@ tree_red = tree_reduction(*voda_, 1) #last argument 1 - vizualize 2d png of tree
 
 #figures 2d 3d choice, 2d choice needs specific slice - if u want to plot, tree_reduction(a,b,c,d) must be executed!
 tree_red = tree_reduction(voda_[0],voda_[1], voda_[2],l_data[3],0) 
-plot_tree_reduction_3d(tree_red)
+# plot_tree_reduction_3d(tree_red)
 
 #tree_red = tree_reduction(voda_[0],voda_[1], voda_[2],l_data[3],0) 
 #plot_tree_reduction_2d(tree_red,66) #choose from z axis interval

@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimage
 from mpl_toolkits import mplot3d
+from loguru import logger
 
 import pydicom as pyd
 
@@ -40,6 +41,7 @@ def load_vdata(p_mask_path, l_mask_path, l_mask_path_img1, l_mask_path_img2, acc
     ds1 = pyd.read_file(l_mask_path_img1)
     ds2 = pyd.read_file(l_mask_path_img2)
     vox_sz = ds2.ImagePositionPatient[2]-ds1.ImagePositionPatient[2]
+    logger.debug("masks readed")
     
     #liver_mask
     PathDicom = l_mask_path
@@ -57,6 +59,7 @@ def load_vdata(p_mask_path, l_mask_path, l_mask_path_img1, l_mask_path_img2, acc
         ds = pyd.read_file(filenameDCM)
         # store the raw image data
         dcmmatrx.append(ds.pixel_array)
+        logger.debug(f"fn={filenameDCM}")
     test = dcmmatrx[1]
     tempsz = (np.shape(test))
     ylab = tempsz[1]
@@ -67,6 +70,7 @@ def load_vdata(p_mask_path, l_mask_path, l_mask_path_img1, l_mask_path_img2, acc
     for pic in range(0, len(dcmmatrx)):
         temppi = dcmmatrx[pic]
         tempbox = [np.zeros([xlab, ylab])]
+        logger.debug(f"liver frame={pic}")
         for x in range(0, xlab):
             for y in range(0, ylab):
                 if(temppi[x, y]) == 255:
@@ -74,6 +78,7 @@ def load_vdata(p_mask_path, l_mask_path, l_mask_path_img1, l_mask_path_img2, acc
                     volume_data_liver [int(counter), int(x), int(y)] = int(1)
         counter = counter + 1
     #porta_mask
+    logger.debug("porta mask")
     PathDicom = p_mask_path
     lstFilesDCM = [] 
     lstFilesDCM = os.listdir(PathDicom) 
@@ -274,12 +279,22 @@ def voda_sk(organ_seg, liver_seg, voxelsize, cr):
         print("computing volume of area: ", temp_area, "Num. of areas in this dataset: ", len(list_of_areas_arr))
         print("$$$$$-------------------------------------------------------------------$$$$$")
 
-    ret_array = []
-    ret_array.append(stats)
-    ret_array.append(list_of_areas_arr_edges)
-    ret_array.append(dist_map_final_liver_vol)
-    return ret_array
-    
+    # ret_array = []
+    # ret_array.append(stats)
+    # ret_array.append(list_of_areas_arr_edges)
+    # ret_array.append(dist_map_final_liver_vol)
+    return stats, list_of_areas_arr_edges, dist_map_final_liver_vol
+    # return ret_array
+
+def create_labeling(input_image_shape) -> np.ndarray:
+    """
+    Create ndarray with segment labeling
+    """
+
+
+    labeled = np.zeros_like(input_image_shape)
+
+    return labeled
     
 def tree_reduction(stats, list_of_areas_arr_edges, dist_map_final_liver_vol, volumecekr, tree_graph_check):
     
