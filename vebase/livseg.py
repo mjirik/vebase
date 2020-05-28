@@ -499,7 +499,10 @@ def tree_reduction(stats, list_of_areas_arr_edges, dist_map_final_liver_vol, vol
         sumtemp = 0
         edgindex = -1
         ind1 = testlistn[i][0]
-        ind2 = testlistn[i][1]
+        try:
+            ind2 = testlistn[i][1]
+        except:
+            None
         for j in range(0,len(mattest[0][:])):
             if mattest[ind1][j] == 1 and mattest[ind2][j] == 1:
                 edgindex = j
@@ -655,6 +658,8 @@ def tree_reduction(stats, list_of_areas_arr_edges, dist_map_final_liver_vol, vol
 
     def find_bro(arr, val):
 
+        if len(arr) == 1:
+            return arr[0]
         if (arr[0] == val):
             return arr[1]
         if (arr[1] == val):
