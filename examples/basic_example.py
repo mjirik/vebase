@@ -43,3 +43,22 @@ tree_red = vebase.livseg.tree_reduction(voda_[0],voda_[1], voda_[2],volumecekr,1
 
 
 print(tree_red)
+
+
+
+"""
+priprava na utery funkcni kod.. jen pridat vebase.livseg.etc..
+
+p1_7 = "D:/liver_datasets_outputs/wokrin/3/MASKS_DICOM/liver/"
+p2_7 = "D:/liver_datasets_outputs/wokrin/3/MASKS_DICOM/portalvein/"
+p1_i_7 = "D:/liver_datasets_outputs/wokrin/3/MASKS_DICOM/liver/image_1"
+p2_i_7 = "D:/liver_datasets_outputs/wokrin/3/MASKS_DICOM/liver/image_2"
+
+l_data_7 = load_vdata(p2_7,p1_7,p1_i_7,p2_i_7) # --- load ncsry data
+
+voda__7 = voda_sk(*l_data_7) # --- build volumes
+#couinaud + graphviz
+#tree_red_7 = tree_reduction(voda__7[0],voda__7[1], voda__7[2],l_data_7[3],1) #0/1 $$$ graphvis array of nodes!if want to specific ones $$$ filtr consts. lowerone, higher one set to 47% 76% 
+#manual targeting
+#tree_red_7 = tree_reduction(voda__7[0],voda__7[1], voda__7[2],l_data_7[3],1,res_div_nodes = [1],seg_params = [0.35,0.8]) 
+"""
