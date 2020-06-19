@@ -544,10 +544,19 @@ def tree_reduction(stats, list_of_areas_arr_edges, dist_map_final_liver_vol, vol
         if root == lastnode:
             None
         else:
-            build_segments(root.left,arr,lastnode)
+            try:
+                build_segments(root.left,arr,lastnode)
+            except:
+                None
             #print(root.val, end=" ")
-            arr.append(root.val)
-            build_segments(root.right,arr,lastnode)
+            try:
+                arr.append(root.val)
+            except:
+                None
+            try:
+                build_segments(root.right,arr,lastnode)
+            except:
+                None
         return arr
     def build_last(root, arr):
         if root==None:
@@ -819,11 +828,15 @@ def tree_reduction(stats, list_of_areas_arr_edges, dist_map_final_liver_vol, vol
         temp_arx = []
         final_array_segments.append(build_last_only(root,temp_arx))
         print("Index of first bifurcation:", root.val)
-        if len(res_div_nodes) ==1:
+        if len(res_div_nodes) == 1:
             final_array_segments.sort(key=sort_fcn)
             final_array_segments.reverse()            
         else:
             None
+        final_array_segments.sort(key=sort_fcn)
+        final_array_segments.reverse()            
+
+            
         if None in final_array_segments:
             final_array_segments.remove(None)
         res_div_nodes_n.append(final_array_segments)
@@ -840,6 +853,20 @@ def tree_reduction(stats, list_of_areas_arr_edges, dist_map_final_liver_vol, vol
     arr_return = []
     arr_return.append(los)
     return arr_return
+
+#fct. which gives u hit about segmentation parametres
+def seg_hinter(req_seg_num):
+    if req_seg_num == 2: #1. bifurcation
+        params = [0.6,0.885]
+        return params
+    elif req_seg_num == 4: #2. bifurcation
+        params = [0.5,0.77]
+        return params
+    elif req_seg_num > 8:
+        params = [0.1,1]
+        return params
+    else:
+        print("execute seg fcn. without specific input -> aprox. 8 segments ")
 
 def vein_b_viz(porta,segs,stats,dist_map_final_liver_vol):
     id_ = []
@@ -988,3 +1015,98 @@ def vein_b_viz_l(porta,segs,stats,dist_map_final_liver_vol):
             except:
                 None
     #fig.savefig('algoritmus_jatra.png', format='png', dpi=600)
+
+def seg_3dnp(liver,segs,stats,dist_map_final_liver_vol,slices_n):
+    id_ = []
+    for i in range(0, (len(stats))):
+        try:
+            id_.append(stats[i+1]["nodeIdA"])
+            id_.append(stats[i+1]["nodeIdB"])
+        except:
+            None
+    id_res = list(set(id_))
+    id_res.sort(reverse = True)
+    arofedges_buildvol = []
+    for i in range(0,len(dist_map_final_liver_vol)):
+        check = (dist_map_final_liver_vol[i][3])
+        if (check > 0):
+            arofedges_buildvol.append(dist_map_final_liver_vol[i])
+    arofedges_buildvolfinal = list(arofedges_buildvol)
+
+    ta = []
+    for i in range(1,-min(id_res)+1):
+        ta.append(-i)
+        
+    uzly = []
+    ttt = -1
+    for j in range(0,len(ta)):
+        for i in range(0,len(dist_map_final_liver_vol)):
+            if dist_map_final_liver_vol[i][3] == ttt:
+                uzly.append(dist_map_final_liver_vol[i])
+                ttt = ttt - 1
+    #print((arofedges_buildvol[5]))
+    #print((uzly[5]))
+    
+    arr_objcts = []
+    
+    seg_frac = []
+    for i in range(0,len(segs)):
+        seg_frac.append(segs[i])
+    for i in range(0,len(seg_frac)):
+        ata = []
+        for j in range(0,len(seg_frac[i])):
+            test_val = -seg_frac[i][j]
+            for k in range(1,len(stats)):
+                try:
+                    if test_val == stats[k]["nodeIdA"] or test_val == stats[k]["nodeIdB"]:
+                        if arofedges_buildvol[k-1] in ata:
+                            None
+                        else:
+                            ata.append(arofedges_buildvol[k-1])
+                except:
+                    if test_val == stats[k]["nodeIdA"]:
+                        if arofedges_buildvol[k-1] in ata:
+                            None
+                        else:
+                            ata.append(arofedges_buildvol[k-1])
+                try:
+                    if test_val == stats[k]["nodeIdB"]:
+                        if arofedges_buildvol[k-1] in ata:
+                            None
+                        else:
+                            ata.append(arofedges_buildvol[k-1])
+                except:
+                    None
+            ata.append(uzly[-test_val-1])
+        arr_objcts.append(ata)
+    seg3d = np.zeros([slices_n, 512 ,512], dtype=np.int)
+    index_arr = []
+    index_i = 1
+    for i in range(0,999):
+        index_arr.append(i)
+    for i in range(0,len(arr_objcts)):
+        if i != 0:
+            index_i = index_i + 1
+        for j in range(0,len(arr_objcts[i])):
+            for k in range(0,len(arr_objcts[i][j][0])):
+                if i == 0:
+                    if (liver[arr_objcts[i][j][0][k]][arr_objcts[i][j][1][k]][arr_objcts[i][j][2][k]]) == 1:
+                        seg3d[arr_objcts[i][j][0][k],arr_objcts[i][j][1][k],arr_objcts[i][j][2][k]] = index_arr[index_i]
+                        
+    
+    #fig = plt.figure(figsize=(10,10))
+    #ax = plt.axes(projection='3d')
+    
+    color = [(0.1, 0.1, 0.1), (0.1, 0.1, 0.3),(0.1, 0.1, 0.6),(0.1, 0.1, 0.9),(0.1, 0.3, 0.1),(0.1, 0.6, 0.1),(0.1, 0.9, 0.1),(0.3, 0.1, 0.1),(0.6, 0.1, 0.1),(0.9, 0.1, 0.1),(0.3, 0.1, 0.3),(0.6, 0.1, 0.6),(0.9, 0.1, 0.9),(0.5, 0.5, 0.5)]
+
+
+    color_check = 0
+    #for i in range(0,len(arr_objcts)):
+    #    for cnt in range(0,len(arr_objcts[i])):
+    #        try:
+    #            ax.scatter3D(arr_objcts[i][cnt][2],arr_objcts[i][cnt][1],arr_objcts[i][cnt][0],color = color[i])
+    #        except:
+    #            None
+    #fig.savefig('jacard.png', format='png', dpi=600)
+    return seg3d
+         
